@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=meerkat
+GenericName=Git Repository Monitor
+Comment=Watch the sync state of local git repositories
+Exec=meerkat
+Icon=meerkat
+Terminal=false
+Categories=Development;RevisionControl;
+Keywords=git;repository;sync;fetch;
+StartupWMClass=meerkat

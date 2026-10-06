@@ -77,6 +77,22 @@ The file is rewritten when you add, remove or reorder repositories from the UI
 - OpenGL renderer (glow). On Windows the release build does not open a console window;
   on Linux the process detaches from the terminal it was started from (see `-f`).
 
+## Installing on Linux
+
+The Linux release package contains `install.sh`, which installs meerkat for the
+current user (no root needed) together with a menu entry and an icon:
+
+```sh
+tar xzf meerkat-<tag>-linux-amd64.tar.gz
+cd meerkat-<tag>-linux-amd64
+./install.sh               # into ~/.local; PREFIX=... to change
+./install.sh --uninstall   # to remove it
+```
+
+Started from the menu, meerkat runs in your home directory and uses `~/meerkat.txt`
+as its repository list; to use another list, edit the `Exec=` line of
+`~/.local/share/applications/meerkat.desktop` (e.g. `Exec="…/meerkat" /path/to/list.txt`).
+
 ## Build
 
 Requires a recent stable Rust toolchain (edition 2024).
@@ -95,7 +111,7 @@ Pushing a tag that points to a commit on `main` triggers the
 [`release.yml`](.github/workflows/release.yml) action, which builds the executables and
 attaches them to the GitHub release named after the tag (creating it if it does not exist):
 
-- `meerkat-<tag>-linux-amd64.tar.gz`
+- `meerkat-<tag>-linux-amd64.tar.gz` (with a menu entry, an icon and `install.sh`)
 - `meerkat-<tag>-windows-amd64.zip` (statically linked CRT, no runtime to install)
 - `SHA256SUMS.txt`
 

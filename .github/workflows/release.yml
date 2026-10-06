@@ -95,6 +95,10 @@ jobs:
             echo "file=$dist.zip" >> "$GITHUB_OUTPUT"
           else
             cp "target/${{ matrix.target }}/release/meerkat" "$dist/"
+            # Menu entry, icon and per-user installer.
+            cp packaging/linux/meerkat.desktop packaging/linux/meerkat.svg \
+               packaging/linux/install.sh "$dist/"
+            chmod 755 "$dist/install.sh"
             tar czf "$dist.tar.gz" "$dist"
             echo "file=$dist.tar.gz" >> "$GITHUB_OUTPUT"
           fi
@@ -117,7 +121,7 @@ jobs:
 
       - name: Checksums
         working-directory: dist
-        run: sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
+        run: sha256sum -- * > SHA256SUMS.txt && cat SHA256SUMS.txt
 
       - name: Create or update release
         env:
