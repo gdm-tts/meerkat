@@ -49,9 +49,17 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
+          components: clippy, rustfmt
       - uses: Swatinem/rust-cache@v2
         with:
           key: ${{ matrix.target }}
+
+      - name: Check
+        shell: bash
+        run: |
+          cargo fmt --check
+          cargo clippy --locked --all-targets -- -D warnings
+          cargo test --locked
 
       - name: Build
         shell: bash
