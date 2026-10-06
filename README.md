@@ -28,12 +28,17 @@ cargo run --release -- path/list.txt -i 10
 ```
 
 ```
-meerkat [LIST_FILE] [-i MINUTES]
+meerkat [LIST_FILE] [-i MINUTES] [-f]
 
   LIST_FILE        repository list, one path per line
                    (default: ./meerkat.txt; if it is a directory: DIR/meerkat.txt)
   -i, --interval   minutes between automatic fetches, 0 = off (default: 5)
+  -f, --foreground stay attached to the terminal it was started from
 ```
+
+When started from a terminal on Linux, meerkat detaches into the background and
+gives the terminal back right away (closing the terminal does not close the window).
+Use `-f` to keep it in the foreground, e.g. to see error output.
 
 ### The `meerkat.txt` file
 
@@ -69,7 +74,8 @@ The file is rewritten when you add, remove or reorder repositories from the UI
   `origin/<branch>` is used when it exists.
 - Hi-DPI: the scale factor comes from the system (per-monitor on Windows, X11 and Wayland);
   all indicators are drawn as vector graphics.
-- OpenGL renderer (glow). On Windows the release build does not open a console window.
+- OpenGL renderer (glow). On Windows the release build does not open a console window;
+  on Linux the process detaches from the terminal it was started from (see `-f`).
 
 ## Build
 
