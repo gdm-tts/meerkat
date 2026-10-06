@@ -3,15 +3,25 @@ name: Release
 # Pushing a tag that points to a commit on `main` builds the Linux and Windows
 # executables and attaches them to the GitHub release named after the tag
 # (the release is created if it does not exist yet).
+#
+# It can also be started by hand (Actions → Release → Run workflow) to build
+# the release of an existing tag, e.g. one created before this workflow existed.
 on:
   push:
     tags: ["*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to build and release
+        required: true
+        type: string
 
 permissions:
   contents: write
 
 env:
   CARGO_TERM_COLOR: always
+  TAG: ${{ inputs.tag || github.ref_name }}
 
 jobs:
   check:
@@ -20,12 +30,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: refs/tags/${{ env.TAG }}
           fetch-depth: 0
       - name: Verify the tagged commit belongs to main
         run: |
           git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
-          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
-            echo "::error::Tag $GITHUB_REF_NAME ($GITHUB_SHA) is not on main, skipping release."
+          sha=$(git rev-parse "refs/tags/$TAG^{commit}")
+          if ! git merge-base --is-ancestor "$sha" origin/main; then
+            echo "::error::Tag $TAG ($sha) is not on main, skipping release."
             exit 1
           fi
 
@@ -46,6 +58,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ env.TAG }}
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
@@ -72,7 +86,7 @@ jobs:
         id: package
         shell: bash
         run: |
-          dist="meerkat-${GITHUB_REF_NAME}-${{ matrix.name }}"
+          dist="meerkat-${TAG}-${{ matrix.name }}"
           mkdir "$dist"
           cp README.md "$dist/"
           if [ "${{ runner.os }}" = "Windows" ]; then
@@ -109,7 +123,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          TAG: ${{ github.ref_name }}
         run: |
           if gh release view "$TAG" > /dev/null 2>&1; then
             gh release upload "$TAG" dist/* --clobber
