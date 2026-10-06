@@ -82,3 +82,20 @@ cargo build --release
 Su Linux a runtime servono le librerie standard di un desktop (`libxkbcommon`,
 `libGL`/`libEGL`, `libwayland` o `libX11`); su Ubuntu/Debian minimali:
 `sudo apt install libxkbcommon-x11-0 libgl1 libegl1`.
+
+## Release
+
+Facendo push di un tag che punta a un commit di `main`, la action
+[`release.yml`](.github/workflows/release.yml) compila gli eseguibili e li allega
+alla release GitHub con lo stesso nome del tag (creandola se non esiste):
+
+- `meerkat-<tag>-linux-amd64.tar.gz`
+- `meerkat-<tag>-windows-amd64.zip` (CRT linkato staticamente, nessun runtime da installare)
+- `SHA256SUMS.txt`
+
+```sh
+git tag v0.1.0 main
+git push origin v0.1.0
+```
+
+Un tag su un commit che non appartiene a `main` fa fallire la action senza pubblicare nulla.
