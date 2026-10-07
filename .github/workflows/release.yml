@@ -26,9 +26,9 @@ env:
 jobs:
   check:
     name: Tag is on main
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: refs/tags/${{ env.TAG }}
           fetch-depth: 0
@@ -57,7 +57,7 @@ jobs:
             target: x86_64-pc-windows-msvc
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: refs/tags/${{ env.TAG }}
       - uses: dtolnay/rust-toolchain@stable
@@ -95,11 +95,15 @@ jobs:
             echo "file=$dist.zip" >> "$GITHUB_OUTPUT"
           else
             cp "target/${{ matrix.target }}/release/meerkat" "$dist/"
+            # Menu entry, icon and per-user installer.
+            cp packaging/linux/meerkat.desktop packaging/linux/meerkat.svg \
+               packaging/linux/install.sh "$dist/"
+            chmod 755 "$dist/install.sh"
             tar czf "$dist.tar.gz" "$dist"
             echo "file=$dist.tar.gz" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.name }}
           path: ${{ steps.package.outputs.file }}
@@ -108,16 +112,16 @@ jobs:
   release:
     name: Publish release
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           path: dist
           merge-multiple: true
 
       - name: Checksums
         working-directory: dist
-        run: sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
+        run: sha256sum -- * > SHA256SUMS.txt && cat SHA256SUMS.txt
 
       - name: Create or update release
         env:

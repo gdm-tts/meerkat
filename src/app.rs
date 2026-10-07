@@ -319,8 +319,10 @@ impl MeerkatApp {
             if reload.clicked() {
                 self.fetch_all();
             }
+            // Always reserve the spinner's space so the summary doesn't jump.
+            let (spin, _) = ui.allocate_exact_size(Vec2::splat(12.0), Sense::hover());
             if busy {
-                ui.add(egui::Spinner::new().size(12.0));
+                paint_spinner(ui, spin, palette::TEXT);
             }
             ui.label(self.summary_text());
 
@@ -639,7 +641,9 @@ fn repo_row(ui: &mut egui::Ui, repo: &Repo, row_h: f32) -> Option<Action> {
         let size = 10.0;
         let spin =
             egui::Rect::from_center_size(egui::pos2(right - size / 2.0, cy), Vec2::splat(size));
-        ui.put(spin, egui::Spinner::new().size(size).color(palette::DIM));
+        // Paint only: adding a widget here would move the layout cursor and
+        // change the row height while fetching.
+        paint_spinner(ui, spin, palette::DIM);
         right -= size + 6.0;
     }
     for (text, c) in counters.iter().rev() {
@@ -790,6 +794,27 @@ fn describe(state: &State) -> (Color32, Vec<(String, Color32)>) {
             Tracking::Detached => (palette::GRAY, vec![]),
         },
     }
+}
+
+/// A thin rotating arc; egui's own spinner uses a stroke too thick to read
+/// at this size.
+fn paint_spinner(ui: &egui::Ui, rect: egui::Rect, color: Color32) {
+    if !ui.is_rect_visible(rect) {
+        return;
+    }
+    ui.ctx().request_repaint();
+    let t = ui.input(|i| i.time) as f32;
+    let radius = rect.width().min(rect.height()) / 2.0 - 1.0;
+    let start = t * std::f32::consts::TAU;
+    let sweep = 270f32.to_radians();
+    let points: Vec<egui::Pos2> = (0..=24)
+        .map(|i| {
+            let a = start + sweep * i as f32 / 24.0;
+            rect.center() + radius * Vec2::new(a.cos(), a.sin())
+        })
+        .collect();
+    ui.painter()
+        .add(egui::Shape::line(points, Stroke::new(1.5, color)));
 }
 
 fn elided(
